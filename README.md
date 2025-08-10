@@ -1,36 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Odrix - Strava Analytics Dashboard
 
-## Getting Started
+Una aplicación web desarrollada con Next.js y TypeScript que se integra con la API de Strava para mostrar análisis detallados de tus actividades deportivas.
 
-First, run the development server:
+## 🚀 Características
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- ✅ Autenticación OAuth con Strava
+- ✅ Dashboard con estadísticas generales
+- ✅ Visualización de actividades recientes
+- ✅ Métricas de rendimiento
+- ✅ Interfaz responsiva con Tailwind CSS
+
+## 📋 Configuración de Strava API
+
+### 1. Crear una aplicación en Strava
+
+1. Ve a [Strava Developers](https://developers.strava.com/)
+2. Haz clic en "Create & Manage Your App"
+3. Completa el formulario con los siguientes datos:
+   - **Application Name**: Odrix (o el nombre que prefieras)
+   - **Category**: Data Importer o la categoría más apropiada
+   - **Website**: http://localhost:3000 (para desarrollo)
+   - **Authorization Callback Domain**: `localhost` (para desarrollo local)
+
+### 2. URLs de devolución de llamada
+
+Para **desarrollo local**:
+```
+http://localhost:3000/api/auth/callback/strava
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Para **producción** (Vercel):
+```
+https://tu-dominio.vercel.app/api/auth/callback/strava
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Configurar variables de entorno
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Copia tus credenciales de Strava al archivo `.env.local`:
 
-## Learn More
+```bash
+# Strava API Configuration
+STRAVA_CLIENT_ID=tu_client_id_de_strava
+STRAVA_CLIENT_SECRET=tu_client_secret_de_strava
+STRAVA_REDIRECT_URI=http://localhost:3000/api/auth/callback/strava
 
-To learn more about Next.js, take a look at the following resources:
+# NextAuth Configuration
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=hLmyfSabCEgQXqA1IqNJX0QLFhmawIw3fMG6u6ZxzS8=
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛠️ Instalación y ejecución
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Instalar dependencias**:
+```bash
+npm install
+```
 
-## Deploy on Vercel
+2. **Configurar variables de entorno**:
+   - Copia el archivo `.env.local` y completa con tus credenciales de Strava
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. **Ejecutar en modo desarrollo**:
+```bash
+npm run dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. **Abrir en el navegador**:
+   - Ve a [http://localhost:3000](http://localhost:3000)
+
+## 📱 Estructura del proyecto
+
+```
+src/
+├── app/
+│   ├── api/auth/[...nextauth]/     # Configuración de NextAuth
+│   ├── auth/                       # Páginas de autenticación
+│   ├── dashboard/                  # Dashboard principal
+│   ├── layout.tsx                  # Layout principal
+│   └── page.tsx                   # Página de inicio
+├── components/
+│   ├── AuthProvider.tsx           # Proveedor de autenticación
+│   └── Navbar.tsx                 # Barra de navegación
+├── lib/
+│   └── strava.ts                  # Servicio de la API de Strava
+└── types/
+    └── next-auth.d.ts             # Tipos de TypeScript para NextAuth
+```
+
+## 🔧 Tecnologías utilizadas
+
+- **Next.js 15** - Framework de React
+- **TypeScript** - Tipado estático
+- **NextAuth.js** - Autenticación OAuth
+- **Tailwind CSS** - Estilos
+- **Axios** - Cliente HTTP
+- **Strava API v3** - Datos deportivos
+
+## 🚀 Despliegue en Vercel
+
+1. **Configura las variables de entorno en Vercel**:
+   - Ve a tu proyecto en Vercel Dashboard
+   - Añade las variables de entorno de producción
+   - Actualiza las URLs para producción
+
+2. **Actualiza la configuración de Strava**:
+   - Cambia el "Authorization Callback Domain" a tu dominio de Vercel
+   - Actualiza la variable `STRAVA_REDIRECT_URI` en Vercel
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT.
