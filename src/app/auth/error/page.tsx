@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 export default function AuthError() {
-  const searchParams = useSearchParams()
-  const error = searchParams.get('error')
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -33,5 +33,5 @@ export default function AuthError() {
         </div>
       </div>
     </div>
-  )
+  );
 }

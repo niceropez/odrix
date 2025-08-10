@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { useSession, signOut } from 'next-auth/react'
-import Link from 'next/link'
-import Image from 'next/image'
+import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
+import Image from "next/image";
 
 export default function Navbar() {
-  const { data: session, status } = useSession()
+  const { data: session, status } = useSession();
 
-  if (status === 'loading') {
+  if (status === "loading") {
     return (
       <nav className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -21,7 +21,7 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
-    )
+    );
   }
 
   return (
@@ -62,7 +62,7 @@ export default function Navbar() {
                   {session.user?.image && (
                     <Image
                       src={session.user.image}
-                      alt={session.user.name || 'Usuario'}
+                      alt={session.user.name || "Usuario"}
                       width={32}
                       height={32}
                       className="rounded-full"
@@ -91,5 +91,5 @@ export default function Navbar() {
         </div>
       </div>
     </nav>
-  )
+  );
 }

@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { signIn } from 'next-auth/react'
-import { useEffect } from 'react'
+import { signIn } from "next-auth/react";
+import { useEffect } from "react";
 
 export default function SignIn() {
   useEffect(() => {
     // Redirigir automáticamente a Strava para autenticación
-    signIn('strava', { callbackUrl: '/' })
-  }, [])
+    signIn("strava", { callbackUrl: "/" });
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -25,7 +25,7 @@ export default function SignIn() {
         </div>
         <div className="text-center">
           <button
-            onClick={() => signIn('strava', { callbackUrl: '/' })}
+            onClick={() => signIn("strava", { callbackUrl: "/" })}
             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
           >
             Conectar con Strava
@@ -33,5 +33,5 @@ export default function SignIn() {
         </div>
       </div>
     </div>
-  )
+  );
 }
