@@ -29,46 +29,7 @@ export const authOptions: AuthOptions = {
           response_type: "code",
         },
       },
-      token: {
-        url: "https://www.strava.com/oauth/token",
-        async request({ client, params, checks, provider }) {
-          console.log("🔑 Token request - params:", params);
-          console.log("🔑 Token request - client_id:", client.client_id);
-          console.log("🔑 Token request - redirect_uri:", params.redirect_uri);
-
-          const response = await fetch("https://www.strava.com/oauth/token", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: new URLSearchParams({
-              client_id: provider.clientId!,
-              client_secret: provider.clientSecret!,
-              code: params.code as string,
-              grant_type: "authorization_code",
-              redirect_uri: params.redirect_uri as string,
-            }),
-          });
-
-          console.log("🔑 Token response status:", response.status);
-          const tokens = await response.json();
-          console.log(
-            "🔑 Token response:",
-            response.ok ? "✅ Success" : "❌ Error",
-            tokens
-          );
-
-          if (!response.ok) {
-            throw new Error(
-              `Token exchange failed: ${response.status} ${JSON.stringify(
-                tokens
-              )}`
-            );
-          }
-
-          return { tokens };
-        },
-      },
+      token: "https://www.strava.com/oauth/token",
       userinfo: "https://www.strava.com/api/v3/athlete",
       clientId: process.env.STRAVA_CLIENT_ID,
       clientSecret: process.env.STRAVA_CLIENT_SECRET,

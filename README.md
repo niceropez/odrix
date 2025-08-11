@@ -31,7 +31,7 @@ http://localhost:3000/api/auth/callback/strava
 
 Para **producción** (Vercel):
 ```
-https://tu-dominio.vercel.app/api/auth/callback/strava
+https://odrix-74wom1lse-nicolas-projects-22862e8e.vercel.app/api/auth/callback/strava
 ```
 
 ### 3. Configurar variables de entorno
