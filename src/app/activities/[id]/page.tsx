@@ -3,12 +3,12 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { 
-  StravaService, 
-  StravaActivity, 
-  StravaStreams, 
-  KilometerData, 
-  calculateKilometerData 
+import {
+  StravaService,
+  StravaActivity,
+  StravaStreams,
+  KilometerData,
+  calculateKilometerData,
 } from "@/lib/strava";
 import Navbar from "@/components/Navbar";
 import KilometerAnalysis from "@/components/KilometerAnalysis";
@@ -56,19 +56,20 @@ export default function ActivityDetail() {
 
   const fetchStreams = async () => {
     if (!activity) return;
-    
+
     try {
       setLoadingStreams(true);
       const stravaService = new StravaService(session!.accessToken!);
-      
+
       // Try with fewer streams first for debugging
-      const streamData = await stravaService.getActivityStreams(Number(activityId), [
-        "time", "distance", "altitude", "heartrate", "velocity_smooth"
-      ]);
-      
+      const streamData = await stravaService.getActivityStreams(
+        Number(activityId),
+        ["time", "distance", "altitude", "heartrate", "velocity_smooth"]
+      );
+
       console.log("Received stream data:", streamData);
       setStreams(streamData);
-      
+
       // Calculate kilometer data
       const kmData = calculateKilometerData(streamData);
       console.log("Calculated km data:", kmData);
@@ -243,22 +244,26 @@ export default function ActivityDetail() {
               {activity.athlete && activity.athlete.profile_medium && (
                 <div className="flex items-center ml-6">
                   <Image
-                    src={activity.athlete.profile_medium || "/default-avatar.svg"}
-                    alt={`${activity.athlete.firstname || "Usuario"} ${activity.athlete.lastname || ""}`}
+                    src={
+                      activity.athlete.profile_medium || "/default-avatar.svg"
+                    }
+                    alt={`${activity.athlete.firstname || "Usuario"} ${
+                      activity.athlete.lastname || ""
+                    }`}
                     width={50}
                     height={50}
                     className="rounded-full mr-3"
                   />
                   <div>
                     <p className="font-semibold text-gray-900">
-                      {activity.athlete.firstname || "Usuario"} {activity.athlete.lastname || ""}
+                      {activity.athlete.firstname || "Usuario"}{" "}
+                      {activity.athlete.lastname || ""}
                     </p>
                     {(activity.athlete.city || activity.athlete.country) && (
                       <p className="text-sm text-gray-500">
-                        {activity.athlete.city && activity.athlete.country 
+                        {activity.athlete.city && activity.athlete.country
                           ? `${activity.athlete.city}, ${activity.athlete.country}`
-                          : activity.athlete.city || activity.athlete.country
-                        }
+                          : activity.athlete.city || activity.athlete.country}
                       </p>
                     )}
                   </div>

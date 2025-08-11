@@ -1,7 +1,7 @@
 "use client";
 
-import React from 'react';
-import { KilometerData } from '@/lib/strava';
+import React from "react";
+import { KilometerData } from "@/lib/strava";
 import {
   ComposedChart,
   Line,
@@ -11,8 +11,8 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
-} from 'recharts';
+  ResponsiveContainer,
+} from "recharts";
 
 interface KilometerAnalysisProps {
   kilometerData: KilometerData[];
@@ -25,15 +25,15 @@ const KilometerAnalysis: React.FC<KilometerAnalysisProps> = ({
   kilometerData,
   loading = false,
   onLoadData,
-  showLoadButton = false
+  showLoadButton = false,
 }) => {
   const hasData = kilometerData.length > 0;
-  const hasHeartrate = kilometerData.some(km => km.heartrate);
+  const hasHeartrate = kilometerData.some((km) => km.heartrate);
 
   // Prepare chart data
-  const chartData = kilometerData.map(km => ({
+  const chartData = kilometerData.map((km) => ({
     ...km,
-    speedKmh: km.speed
+    speedKmh: km.speed,
   }));
 
   return (
@@ -87,9 +87,11 @@ const KilometerAnalysis: React.FC<KilometerAnalysisProps> = ({
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {kilometerData.map((kmData, index) => (
-                    <tr 
-                      key={kmData.km} 
-                      className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}
+                    <tr
+                      key={kmData.km}
+                      className={`hover:bg-gray-50 ${
+                        index % 2 === 0 ? "bg-white" : "bg-gray-25"
+                      }`}
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {kmData.km}
@@ -98,13 +100,26 @@ const KilometerAnalysis: React.FC<KilometerAnalysisProps> = ({
                         <span className="font-mono">{kmData.pace}</span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <span className={`${kmData.elevation > 0 ? 'text-red-600' : kmData.elevation < 0 ? 'text-green-600' : 'text-gray-600'}`}>
-                          {kmData.elevation > 0 ? `+${kmData.elevation}` : kmData.elevation}m
+                        <span
+                          className={`${
+                            kmData.elevation > 0
+                              ? "text-red-600"
+                              : kmData.elevation < 0
+                              ? "text-green-600"
+                              : "text-gray-600"
+                          }`}
+                        >
+                          {kmData.elevation > 0
+                            ? `+${kmData.elevation}`
+                            : kmData.elevation}
+                          m
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {kmData.heartrate ? (
-                          <span className="text-red-600">{kmData.heartrate} bpm</span>
+                          <span className="text-red-600">
+                            {kmData.heartrate} bpm
+                          </span>
                         ) : (
                           <span className="text-gray-400">N/A</span>
                         )}
@@ -125,37 +140,51 @@ const KilometerAnalysis: React.FC<KilometerAnalysisProps> = ({
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                  <XAxis 
-                    dataKey="km" 
-                    label={{ value: 'Kilómetro', position: 'insideBottom', offset: -5 }}
+                  <XAxis
+                    dataKey="km"
+                    label={{
+                      value: "Kilómetro",
+                      position: "insideBottom",
+                      offset: -5,
+                    }}
                     tick={{ fontSize: 12 }}
                   />
-                  <YAxis 
+                  <YAxis
                     yAxisId="elevation"
-                    label={{ value: 'Elevación (m)', angle: -90, position: 'insideLeft' }}
+                    label={{
+                      value: "Elevación (m)",
+                      angle: -90,
+                      position: "insideLeft",
+                    }}
                     tick={{ fontSize: 12 }}
                   />
-                  <YAxis 
+                  <YAxis
                     yAxisId="speed"
                     orientation="right"
-                    label={{ value: 'Velocidad (km/h)', angle: 90, position: 'insideRight' }}
+                    label={{
+                      value: "Velocidad (km/h)",
+                      angle: 90,
+                      position: "insideRight",
+                    }}
                     tick={{ fontSize: 12 }}
                   />
-                  <Tooltip 
+                  <Tooltip
                     content={({ active, payload, label }) => {
                       if (active && payload && payload.length > 0) {
-                        const kmData = kilometerData.find(km => km.km === label);
+                        const kmData = kilometerData.find(
+                          (km) => km.km === label
+                        );
                         return (
                           <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
                             <p className="font-semibold">{`Kilómetro ${label}`}</p>
                             {payload.map((entry, index) => (
                               <p key={index} style={{ color: entry.color }}>
-                                {entry.name}: {entry.name === 'Elevación (m)' ? 
-                                  `${entry.value}m` : 
-                                  entry.name === 'Velocidad (km/h)' ? 
-                                  `${(entry.value as number).toFixed(1)} km/h` :
-                                  `${entry.value} bpm`
-                                }
+                                {entry.name}:{" "}
+                                {entry.name === "Elevación (m)"
+                                  ? `${entry.value}m`
+                                  : entry.name === "Velocidad (km/h)"
+                                  ? `${(entry.value as number).toFixed(1)} km/h`
+                                  : `${entry.value} bpm`}
                               </p>
                             ))}
                             {kmData && (
@@ -170,41 +199,41 @@ const KilometerAnalysis: React.FC<KilometerAnalysisProps> = ({
                     }}
                   />
                   <Legend />
-                  <Bar 
+                  <Bar
                     yAxisId="elevation"
-                    dataKey="elevation" 
-                    fill="#10b981" 
+                    dataKey="elevation"
+                    fill="#10b981"
                     name="Elevación (m)"
                     opacity={0.7}
                   />
-                  <Line 
+                  <Line
                     yAxisId="speed"
-                    type="monotone" 
+                    type="monotone"
                     dataKey="speedKmh"
-                    stroke="#3b82f6" 
+                    stroke="#3b82f6"
                     strokeWidth={3}
                     name="Velocidad (km/h)"
-                    dot={{ fill: '#3b82f6', strokeWidth: 2, r: 5 }}
-                    activeDot={{ r: 7, fill: '#3b82f6' }}
+                    dot={{ fill: "#3b82f6", strokeWidth: 2, r: 5 }}
+                    activeDot={{ r: 7, fill: "#3b82f6" }}
                   />
                   {hasHeartrate && (
-                    <Line 
+                    <Line
                       yAxisId="speed"
-                      type="monotone" 
-                      dataKey="heartrate" 
-                      stroke="#ef4444" 
+                      type="monotone"
+                      dataKey="heartrate"
+                      stroke="#ef4444"
                       strokeWidth={3}
                       strokeDasharray="8 8"
                       name="FC (bpm)"
-                      dot={{ fill: '#ef4444', strokeWidth: 2, r: 5 }}
-                      activeDot={{ r: 7, fill: '#ef4444' }}
+                      dot={{ fill: "#ef4444", strokeWidth: 2, r: 5 }}
+                      activeDot={{ r: 7, fill: "#ef4444" }}
                       connectNulls={false}
                     />
                   )}
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
-            
+
             {/* Chart Legend Explanation */}
             <div className="mt-4 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
               <p className="font-medium mb-2">Leyenda del gráfico:</p>
@@ -230,13 +259,22 @@ const KilometerAnalysis: React.FC<KilometerAnalysisProps> = ({
       ) : showLoadButton ? (
         <div className="text-center py-8 text-gray-500">
           <div className="text-4xl mb-4">📊</div>
-          <p>Haz clic en "Cargar Datos Detallados" para ver el análisis por kilómetro</p>
-          <p className="text-sm mt-2">Incluye pace, elevación y frecuencia cardíaca por kilómetro</p>
+          <p>
+            Haz clic en "Cargar Datos Detallados" para ver el análisis por
+            kilómetro
+          </p>
+          <p className="text-sm mt-2">
+            Incluye pace, elevación y frecuencia cardíaca por kilómetro
+          </p>
         </div>
       ) : (
         <div className="text-center py-8 text-gray-500">
-          <p>No se pudieron procesar los datos detallados para esta actividad.</p>
-          <p className="text-sm mt-2">Es posible que la actividad no tenga datos de streams disponibles.</p>
+          <p>
+            No se pudieron procesar los datos detallados para esta actividad.
+          </p>
+          <p className="text-sm mt-2">
+            Es posible que la actividad no tenga datos de streams disponibles.
+          </p>
         </div>
       )}
     </div>

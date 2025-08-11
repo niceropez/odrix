@@ -219,44 +219,58 @@ export class StravaService {
 
   async getActivityStreams(
     id: number,
-    keys: string[] = ["time", "distance", "latlng", "altitude", "velocity_smooth", "heartrate", "cadence", "watts", "temp", "moving", "grade_smooth"]
+    keys: string[] = [
+      "time",
+      "distance",
+      "latlng",
+      "altitude",
+      "velocity_smooth",
+      "heartrate",
+      "cadence",
+      "watts",
+      "temp",
+      "moving",
+      "grade_smooth",
+    ]
   ): Promise<StravaStreams> {
     const keyString = keys.join(",");
-    
+
     try {
       // Try the standard Strava API endpoint
-      const streamsArray = await this.makeRequest(`/activities/${id}/streams/${keyString}`, {
-        key_by_type: "true"
-      });
-      
+      const streamsArray = await this.makeRequest(
+        `/activities/${id}/streams/${keyString}`,
+        {
+          key_by_type: "true",
+        }
+      );
+
       console.log("Raw streams response:", streamsArray);
-      
+
       // Convert array response to keyed object
       const streams: StravaStreams = {};
-      
+
       if (Array.isArray(streamsArray)) {
         streamsArray.forEach((stream: any) => {
           if (stream.type && stream.data) {
             streams[stream.type as keyof StravaStreams] = {
               data: stream.data,
-              series_type: stream.series_type || 'distance',
+              series_type: stream.series_type || "distance",
               original_size: stream.original_size || stream.data.length,
-              resolution: stream.resolution || 'high'
+              resolution: stream.resolution || "high",
             };
           }
         });
-      } else if (streamsArray && typeof streamsArray === 'object') {
+      } else if (streamsArray && typeof streamsArray === "object") {
         // Handle case where response is already an object
-        Object.keys(streamsArray).forEach(key => {
+        Object.keys(streamsArray).forEach((key) => {
           if (streamsArray[key] && streamsArray[key].data) {
             streams[key as keyof StravaStreams] = streamsArray[key];
           }
         });
       }
-      
+
       console.log("Processed streams:", streams);
       return streams;
-      
     } catch (error) {
       console.error("Error fetching streams:", error);
       throw error;
@@ -269,13 +283,19 @@ export class StravaService {
 }
 
 // Utility functions for processing stream data
-export function calculateKilometerData(streams: StravaStreams): KilometerData[] {
+export function calculateKilometerData(
+  streams: StravaStreams
+): KilometerData[] {
   console.log("calculateKilometerData input:", streams);
-  
+
   if (!streams.distance?.data || !streams.time?.data) {
     console.log("Missing distance or time data:", {
-      distance: streams.distance?.data ? `${streams.distance.data.length} points` : 'missing',
-      time: streams.time?.data ? `${streams.time.data.length} points` : 'missing'
+      distance: streams.distance?.data
+        ? `${streams.distance.data.length} points`
+        : "missing",
+      time: streams.time?.data
+        ? `${streams.time.data.length} points`
+        : "missing",
     });
     return [];
   }
@@ -291,7 +311,7 @@ export function calculateKilometerData(streams: StravaStreams): KilometerData[] 
     time: time.length,
     altitude: altitude.length,
     heartrate: heartrate.length,
-    velocity: velocity.length
+    velocity: velocity.length,
   });
 
   const kilometerData: KilometerData[] = [];
@@ -299,15 +319,17 @@ export function calculateKilometerData(streams: StravaStreams): KilometerData[] 
 
   const totalDistance = distance[distance.length - 1];
   const totalKm = Math.floor(totalDistance / 1000);
-  
+
   console.log(`Total distance: ${totalDistance}m, Total km: ${totalKm}`);
 
   for (let km = 1; km <= totalKm; km++) {
     const targetDistance = km * 1000;
-    
+
     // Find the index where we cross the km mark
-    const kmIndex = distance.findIndex((d, i) => i > lastKmIndex && d >= targetDistance);
-    
+    const kmIndex = distance.findIndex(
+      (d, i) => i > lastKmIndex && d >= targetDistance
+    );
+
     if (kmIndex === -1) {
       console.log(`No index found for km ${km}`);
       break;
@@ -317,12 +339,14 @@ export function calculateKilometerData(streams: StravaStreams): KilometerData[] 
     const kmTime = time[kmIndex] - time[lastKmIndex];
     const kmDistance = distance[kmIndex] - distance[lastKmIndex];
     const kmSpeed = kmDistance / kmTime; // m/s
-    
+
     // Calculate pace (min/km)
     const paceSeconds = 1000 / kmSpeed;
     const paceMinutes = Math.floor(paceSeconds / 60);
     const paceSecondsRemainder = Math.round(paceSeconds % 60);
-    const pace = `${paceMinutes}:${paceSecondsRemainder.toString().padStart(2, '0')}`;
+    const pace = `${paceMinutes}:${paceSecondsRemainder
+      .toString()
+      .padStart(2, "0")}`;
 
     // Calculate elevation gain for this km
     let elevationGain = 0;
@@ -337,9 +361,13 @@ export function calculateKilometerData(streams: StravaStreams): KilometerData[] 
     // Calculate average heart rate for this km
     let avgHeartrate: number | null = null;
     if (heartrate.length > 0) {
-      const hrData = heartrate.slice(lastKmIndex, kmIndex + 1).filter(hr => hr > 0);
+      const hrData = heartrate
+        .slice(lastKmIndex, kmIndex + 1)
+        .filter((hr) => hr > 0);
       if (hrData.length > 0) {
-        avgHeartrate = Math.round(hrData.reduce((sum, hr) => sum + hr, 0) / hrData.length);
+        avgHeartrate = Math.round(
+          hrData.reduce((sum, hr) => sum + hr, 0) / hrData.length
+        );
       }
     }
 
@@ -350,7 +378,7 @@ export function calculateKilometerData(streams: StravaStreams): KilometerData[] 
       heartrate: avgHeartrate,
       speed: kmSpeed * 3.6, // Convert to km/h
       distance: kmDistance,
-      time: kmTime
+      time: kmTime,
     });
 
     lastKmIndex = kmIndex;
@@ -363,5 +391,5 @@ export function calculateKilometerData(streams: StravaStreams): KilometerData[] 
 export function formatPaceFromSeconds(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = Math.round(seconds % 60);
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
