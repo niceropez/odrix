@@ -179,9 +179,64 @@ export interface KilometerData {
 
 export class StravaService {
   private accessToken: string;
+  private refreshToken?: string;
+  private expiresAt?: number;
 
-  constructor(accessToken: string) {
+  constructor(accessToken: string, refreshToken?: string, expiresAt?: number) {
     this.accessToken = accessToken;
+    this.refreshToken = refreshToken;
+    this.expiresAt = expiresAt;
+  }
+
+  private async ensureValidToken(): Promise<string> {
+    // Check if token is expired or expiring soon (within 5 minutes)
+    if (this.expiresAt && this.refreshToken) {
+      const now = Math.floor(Date.now() / 1000);
+      const timeUntilExpiry = this.expiresAt - now;
+
+      console.log("⏰ Token expires in:", timeUntilExpiry / 60, "minutes");
+
+      if (timeUntilExpiry < 300) {
+        // Less than 5 minutes
+        console.log("🔄 Token expiring soon, refreshing...");
+        try {
+          const refreshedTokens = await this.refreshStravaToken();
+          this.accessToken = refreshedTokens.access_token;
+          this.expiresAt = refreshedTokens.expires_at;
+          console.log("✅ Token refreshed in StravaService");
+        } catch (error) {
+          console.error("❌ Failed to refresh token:", error);
+          // Continue with existing token, might fail the request
+        }
+      }
+    }
+
+    return this.accessToken;
+  }
+
+  private async refreshStravaToken(): Promise<any> {
+    if (!this.refreshToken) {
+      throw new Error("No refresh token available");
+    }
+
+    console.log("🔄 Calling API endpoint to refresh token...");
+
+    const response = await fetch("/api/refresh-token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("❌ Token refresh API error:", error);
+      throw new Error(`Token refresh failed: ${JSON.stringify(error)}`);
+    }
+
+    const result = await response.json();
+    console.log("✅ Token refresh successful via API");
+    return result;
   }
 
   private async makeRequest(
@@ -189,15 +244,40 @@ export class StravaService {
     params?: Record<string, string | number>
   ) {
     try {
+      const validToken = await this.ensureValidToken();
+
       const response = await axios.get(`${STRAVA_BASE_URL}${endpoint}`, {
         headers: {
-          Authorization: `Bearer ${this.accessToken}`,
+          Authorization: `Bearer ${validToken}`,
         },
         params,
       });
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Strava API Error:", error);
+
+      // If token is invalid, try to refresh once
+      if (error.response?.status === 401 && this.refreshToken) {
+        console.log("🔄 401 error, attempting token refresh...");
+        try {
+          const refreshedTokens = await this.refreshStravaToken();
+          this.accessToken = refreshedTokens.access_token;
+          this.expiresAt = refreshedTokens.expires_at;
+
+          // Retry the original request with new token
+          const response = await axios.get(`${STRAVA_BASE_URL}${endpoint}`, {
+            headers: {
+              Authorization: `Bearer ${this.accessToken}`,
+            },
+            params,
+          });
+          return response.data;
+        } catch (refreshError) {
+          console.error("❌ Token refresh failed:", refreshError);
+          throw error; // Throw original error
+        }
+      }
+
       throw error;
     }
   }
@@ -393,3 +473,44 @@ export function formatPaceFromSeconds(seconds: number): string {
   const remainingSeconds = Math.round(seconds % 60);
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
+
+// Convenience functions that create StravaService instances with token refresh support
+export const getActivities = async (
+  accessToken: string,
+  refreshToken?: string,
+  expiresAt?: number
+): Promise<StravaActivity[]> => {
+  console.log("🔄 Getting activities with token validity check");
+  const stravaService = new StravaService(accessToken, refreshToken, expiresAt);
+  const activities = await stravaService.getActivities();
+  console.log("📊 Fetched", activities.length, "activities");
+  return activities;
+};
+
+export const getActivity = async (
+  activityId: string,
+  accessToken: string,
+  refreshToken?: string,
+  expiresAt?: number
+): Promise<StravaActivity> => {
+  console.log(
+    "🔄 Getting activity with token validity check for ID:",
+    activityId
+  );
+  const stravaService = new StravaService(accessToken, refreshToken, expiresAt);
+  return stravaService.getActivity(Number(activityId));
+};
+
+export const getActivityStreams = async (
+  activityId: string,
+  accessToken: string,
+  refreshToken?: string,
+  expiresAt?: number
+): Promise<StravaStreams> => {
+  console.log(
+    "🔄 Getting activity streams with token validity check for ID:",
+    activityId
+  );
+  const stravaService = new StravaService(accessToken, refreshToken, expiresAt);
+  return stravaService.getActivityStreams(Number(activityId));
+};

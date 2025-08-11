@@ -43,7 +43,11 @@ export default function ActivityDetail() {
   const fetchActivity = async () => {
     try {
       setLoading(true);
-      const stravaService = new StravaService(session!.accessToken!);
+      const stravaService = new StravaService(
+        session!.accessToken!,
+        session!.refreshToken,
+        session!.expiresAt
+      );
       const activityData = await stravaService.getActivity(Number(activityId));
       setActivity(activityData);
     } catch (err) {
@@ -59,7 +63,11 @@ export default function ActivityDetail() {
 
     try {
       setLoadingStreams(true);
-      const stravaService = new StravaService(session!.accessToken!);
+      const stravaService = new StravaService(
+        session!.accessToken!,
+        session!.refreshToken,
+        session!.expiresAt
+      );
 
       // Try with fewer streams first for debugging
       const streamData = await stravaService.getActivityStreams(

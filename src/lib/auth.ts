@@ -1,5 +1,45 @@
 import { AuthOptions } from "next-auth";
 
+// Function to refresh Strava token
+async function refreshStravaToken(refreshToken: string) {
+  console.log("🔄 Refreshing Strava token...");
+  console.log("📋 Client ID available:", !!process.env.STRAVA_CLIENT_ID);
+  console.log(
+    "📋 Client Secret available:",
+    !!process.env.STRAVA_CLIENT_SECRET
+  );
+  console.log("📋 Refresh token length:", refreshToken?.length);
+
+  const response = await fetch("https://www.strava.com/oauth/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      client_id: process.env.STRAVA_CLIENT_ID!,
+      client_secret: process.env.STRAVA_CLIENT_SECRET!,
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    console.error("❌ Token refresh failed:", error);
+    console.error("❌ Response status:", response.status);
+    console.error(
+      "❌ Response headers:",
+      Object.fromEntries(response.headers.entries())
+    );
+    throw new Error(`Token refresh failed: ${response.status}`);
+  }
+
+  const tokens = await response.json();
+  console.log("✅ Token refresh successful");
+
+  return tokens;
+}
+
 // 🔍 Debug de variables de entorno
 console.log("🔍 Environment Variables Debug:");
 console.log(
@@ -97,18 +137,77 @@ export const authOptions: AuthOptions = {
         "profile:",
         !!profile
       );
+
       if (account) {
+        // Initial sign in
+        console.log("🔍 Account object received:", account);
+        console.log(
+          "🔍 Account expires_at:",
+          account.expires_at,
+          "type:",
+          typeof account.expires_at
+        );
+
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
+        token.expiresAt = account.expires_at; // Unix timestamp
         token.stravaId = profile?.id;
-        console.log("✅ Tokens saved to JWT");
+
+        console.log("✅ Initial tokens saved to JWT");
+        console.log(
+          "🔍 Saved expiresAt:",
+          token.expiresAt,
+          "type:",
+          typeof token.expiresAt
+        );
+        console.log(
+          "⏰ Token expires at:",
+          new Date((account.expires_at || 0) * 1000)
+        );
+        return token;
       }
+
+      // Check if token is expired and refresh if needed
+      const now = Math.floor(Date.now() / 1000);
+      const expiresAt = token.expiresAt as number;
+
+      console.log("⏰ Current time:", new Date(now * 1000));
+      console.log("⏰ Token expires at:", new Date(expiresAt * 1000));
+      console.log("⏰ Time until expiry:", (expiresAt - now) / 60, "minutes");
+
+      // Refresh token if it expires in the next 5 minutes
+      if (expiresAt && expiresAt - now < 300) {
+        console.log("🔄 Token expiring soon, refreshing...");
+        try {
+          const refreshedTokens = await refreshStravaToken(
+            token.refreshToken as string
+          );
+
+          token.accessToken = refreshedTokens.access_token;
+          token.refreshToken = refreshedTokens.refresh_token;
+          token.expiresAt = refreshedTokens.expires_at;
+
+          console.log("✅ Token refreshed successfully");
+          console.log(
+            "⏰ New expiry:",
+            new Date(refreshedTokens.expires_at * 1000)
+          );
+
+          return token;
+        } catch (error) {
+          console.error("❌ Error refreshing token:", error);
+          // Return token as is, might need to re-authenticate
+          return token;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
       session.accessToken = token.accessToken as string;
       session.refreshToken = token.refreshToken as string;
       session.stravaId = token.stravaId as number;
+      session.expiresAt = token.expiresAt as number;
       return session;
     },
   },

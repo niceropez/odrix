@@ -5,6 +5,7 @@ declare module "next-auth" {
     accessToken?: string;
     refreshToken?: string;
     stravaId?: number;
+    expiresAt?: number;
   }
 
   interface Profile {
@@ -21,5 +22,6 @@ declare module "next-auth/jwt" {
     accessToken?: string;
     refreshToken?: string;
     stravaId?: number;
+    expiresAt?: number;
   }
 }

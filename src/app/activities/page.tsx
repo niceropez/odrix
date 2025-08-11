@@ -37,7 +37,11 @@ export default function ActivitiesPage() {
         setLoadingMore(true);
       }
 
-      const stravaService = new StravaService(session!.accessToken!);
+      const stravaService = new StravaService(
+        session!.accessToken!,
+        session!.refreshToken,
+        session!.expiresAt
+      );
       const newActivities = await stravaService.getActivities(pageNum, 20);
 
       if (reset) {

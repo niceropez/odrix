@@ -20,7 +20,11 @@ export default function Dashboard() {
 
     try {
       setLoading(true);
-      const stravaService = new StravaService(session.accessToken);
+      const stravaService = new StravaService(
+        session.accessToken,
+        session.refreshToken,
+        session.expiresAt
+      );
 
       const [athleteData, activitiesData] = await Promise.all([
         stravaService.getAthlete(),
@@ -35,7 +39,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [session?.accessToken]);
+  }, [session?.accessToken, session?.refreshToken, session?.expiresAt]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
