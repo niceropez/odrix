@@ -19,6 +19,64 @@ export interface StravaActivity {
   photo_count: number;
   average_speed: number;
   max_speed: number;
+  // Campos adicionales para la vista detallada
+  description?: string;
+  calories?: number;
+  device_name?: string;
+  gear_id?: string;
+  trainer?: boolean;
+  commute?: boolean;
+  manual?: boolean;
+  private?: boolean;
+  visibility?: string;
+  start_latlng?: [number, number];
+  end_latlng?: [number, number];
+  map?: {
+    id: string;
+    summary_polyline: string;
+    resource_state: number;
+  };
+  timezone?: string;
+  utc_offset?: number;
+  location_city?: string;
+  location_state?: string;
+  location_country?: string;
+  average_heartrate?: number;
+  max_heartrate?: number;
+  average_cadence?: number;
+  average_watts?: number;
+  weighted_average_watts?: number;
+  kilojoules?: number;
+  device_watts?: boolean;
+  has_heartrate?: boolean;
+  heartrate_opt_out?: boolean;
+  display_hide_heartrate_option?: boolean;
+  elev_high?: number;
+  elev_low?: number;
+  pr_count?: number;
+  total_photo_count?: number;
+  has_kudoed?: boolean;
+  workout_type?: number;
+  suffer_score?: number;
+  external_id?: string;
+  upload_id?: number;
+  athlete?: {
+    id: number;
+    username: string;
+    resource_state: number;
+    firstname: string;
+    lastname: string;
+    premium: boolean;
+    summit: boolean;
+    city: string;
+    state: string;
+    country: string;
+    sex: string;
+    profile_medium: string;
+    profile: string;
+    friend?: any;
+    follower?: any;
+  };
 }
 
 export interface StravaAthlete {

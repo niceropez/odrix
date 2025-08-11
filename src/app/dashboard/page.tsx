@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import { StravaService, StravaActivity, StravaAthlete } from "@/lib/strava";
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export default function Dashboard() {
@@ -276,7 +277,12 @@ export default function Dashboard() {
                 {activities.map((activity) => (
                   <tr key={activity.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {activity.name}
+                      <Link
+                        href={`/activities/${activity.id}`}
+                        className="text-orange-600 hover:text-orange-800"
+                      >
+                        {activity.name}
+                      </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {activity.type}
