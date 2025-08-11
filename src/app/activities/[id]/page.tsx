@@ -12,6 +12,7 @@ import {
 } from "@/lib/strava";
 import Navbar from "@/components/Navbar";
 import KilometerAnalysis from "@/components/KilometerAnalysis";
+import DynamicRouteMap from "@/components/DynamicRouteMap";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -72,7 +73,7 @@ export default function ActivityDetail() {
       // Try with fewer streams first for debugging
       const streamData = await stravaService.getActivityStreams(
         Number(activityId),
-        ["time", "distance", "altitude", "heartrate", "velocity_smooth"]
+        ["time", "distance", "altitude", "heartrate", "velocity_smooth", "latlng"]
       );
 
       console.log("Received stream data:", streamData);
@@ -427,19 +428,35 @@ export default function ActivityDetail() {
           />
         </div>
 
-        {/* Map placeholder */}
-        {activity.map && activity.map.summary_polyline && (
+        {/* Map Section */}
+        {(activity.map && activity.map.summary_polyline) || (streams && streams.latlng) ? (
           <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Ruta</h3>
-            <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
-              <div className="text-center text-gray-500">
-                <p className="text-lg">🗺️ Mapa de la ruta</p>
-                <p className="text-sm">Integración con mapas próximamente</p>
-                <p className="text-xs mt-2">ID del mapa: {activity.map.id}</p>
+            {streams && streams.latlng && streams.latlng.data ? (
+              <DynamicRouteMap
+                routeData={streams.latlng.data}
+                startPoint={streams.latlng.data[0]}
+                endPoint={streams.latlng.data[streams.latlng.data.length - 1]}
+                activityName={activity.name}
+                className="h-96 w-full rounded-lg"
+              />
+            ) : (
+              <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
+                <div className="text-center text-gray-500">
+                  <p className="text-lg">🗺️ Mapa de la ruta</p>
+                  <p className="text-sm">Carga los datos detallados para ver el mapa</p>
+                  <button
+                    onClick={fetchStreams}
+                    disabled={loadingStreams}
+                    className="mt-2 bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 disabled:opacity-50"
+                  >
+                    {loadingStreams ? "Cargando..." : "Cargar datos de ruta"}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
-        )}
+        ) : null}
 
         {/* Location info */}
         {(activity.location_city || activity.start_latlng) && (
