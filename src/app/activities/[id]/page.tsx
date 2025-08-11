@@ -3,8 +3,15 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { StravaService, StravaActivity } from "@/lib/strava";
+import { 
+  StravaService, 
+  StravaActivity, 
+  StravaStreams, 
+  KilometerData, 
+  calculateKilometerData 
+} from "@/lib/strava";
 import Navbar from "@/components/Navbar";
+import KilometerAnalysis from "@/components/KilometerAnalysis";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -13,8 +20,12 @@ export default function ActivityDetail() {
   const params = useParams();
   const router = useRouter();
   const [activity, setActivity] = useState<StravaActivity | null>(null);
+  const [streams, setStreams] = useState<StravaStreams | null>(null);
+  const [kilometerData, setKilometerData] = useState<KilometerData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingStreams, setLoadingStreams] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showStreams, setShowStreams] = useState(false);
 
   const activityId = params.id as string;
 
@@ -40,6 +51,34 @@ export default function ActivityDetail() {
       console.error("Error:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStreams = async () => {
+    if (!activity) return;
+    
+    try {
+      setLoadingStreams(true);
+      const stravaService = new StravaService(session!.accessToken!);
+      
+      // Try with fewer streams first for debugging
+      const streamData = await stravaService.getActivityStreams(Number(activityId), [
+        "time", "distance", "altitude", "heartrate", "velocity_smooth"
+      ]);
+      
+      console.log("Received stream data:", streamData);
+      setStreams(streamData);
+      
+      // Calculate kilometer data
+      const kmData = calculateKilometerData(streamData);
+      console.log("Calculated km data:", kmData);
+      setKilometerData(kmData);
+      setShowStreams(true);
+    } catch (err) {
+      console.error("Error loading streams:", err);
+      setError("Error al cargar los datos detallados");
+    } finally {
+      setLoadingStreams(false);
     }
   };
 
@@ -201,22 +240,27 @@ export default function ActivityDetail() {
                 )}
               </div>
 
-              {activity.athlete && (
+              {activity.athlete && activity.athlete.profile_medium && (
                 <div className="flex items-center ml-6">
                   <Image
-                    src={activity.athlete.profile_medium}
-                    alt={`${activity.athlete.firstname} ${activity.athlete.lastname}`}
+                    src={activity.athlete.profile_medium || "/default-avatar.svg"}
+                    alt={`${activity.athlete.firstname || "Usuario"} ${activity.athlete.lastname || ""}`}
                     width={50}
                     height={50}
                     className="rounded-full mr-3"
                   />
                   <div>
                     <p className="font-semibold text-gray-900">
-                      {activity.athlete.firstname} {activity.athlete.lastname}
+                      {activity.athlete.firstname || "Usuario"} {activity.athlete.lastname || ""}
                     </p>
-                    <p className="text-sm text-gray-500">
-                      {activity.athlete.city}, {activity.athlete.country}
-                    </p>
+                    {(activity.athlete.city || activity.athlete.country) && (
+                      <p className="text-sm text-gray-500">
+                        {activity.athlete.city && activity.athlete.country 
+                          ? `${activity.athlete.city}, ${activity.athlete.country}`
+                          : activity.athlete.city || activity.athlete.country
+                        }
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -358,6 +402,16 @@ export default function ActivityDetail() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Kilometer Analysis Section */}
+        <div className="mb-8">
+          <KilometerAnalysis
+            kilometerData={kilometerData}
+            loading={loadingStreams}
+            onLoadData={fetchStreams}
+            showLoadButton={!showStreams}
+          />
         </div>
 
         {/* Map placeholder */}
